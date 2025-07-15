@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مركز أيمن لصيانة الموبايل</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- QR Code Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <!-- PDF Generation Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div id="notification-container"></div>
+
+    <header class="main-header">
+        <div class="header-content">
+            <div class="logo-section">
+                <img src="logo.png" alt="شعار مركز أيمن" class="logo">
+                <h1>مركز أيمن لصيانة الموبايل</h1>
+            </div>
+            <div class="header-actions">
+                <button class="dark-mode-btn" title="الوضع الليلي"><i class="fas fa-moon"></i></button>
+                <button class="login-btn"><i class="fas fa-user-circle"></i> تسجيل الدخول</button>
+            </div>
+        </div>
+        <div class="ticker-tape">
+            <span id="ticker-text">مرحباً بكم في مركز أيمن لصيانة الموبايل - جودة، سرعة، احترافية!</span>
+        </div>
+    </header>
+
+    <nav class="main-tabs">
+        <button class="tab-icon-btn active" data-tab="status-check">
+            <i class="fas fa-search"></i>
+            <span>الحالة</span>
+        </button>
+        <button class="tab-icon-btn" data-tab="admin-panel">
+            <i class="fas fa-cogs"></i>
+            <span>لوحة الإدارة</span>
+        </button>
+        <button class="tab-icon-btn" data-tab="apps">
+            <i class="fas fa-mobile-alt"></i>
+            <span>التطبيقات</span>
+        </button>
+        <button class="tab-icon-btn" data-tab="shop">
+            <i class="fas fa-shopping-bag"></i>
+            <span>التسوق</span>
+        </button>
+        <button class="tab-icon-btn" data-tab="delivery">
+            <i class="fas fa-truck"></i>
+            <span>نصلك أينما كنت</span>
+        </button>
+        <button class="tab-icon-btn" data-tab="news">
+            <i class="fas fa-newspaper"></i>
+            <span>الأخبار</span>
+        </button>
+        <button class="tab-icon-btn" data-tab="services">
+            <i class="fas fa-handshake"></i>
+            <span>خدماتنا</span>
+        </button>
+        <button class="tab-icon-btn" data-tab="about">
+            <i class="fas fa-info-circle"></i>
+            <span>من نحن</span>
+        </button>
+    </nav>
+
+    <main>
+        <!-- Status Check Section -->
+        <section id="status-check" class="tab-content active">
+            <h2>التحقق من حالة الجهاز</h2>
+            <div class="search-container">
+                <input type="text" id="device-code-input" placeholder="أدخل كود الجهاز أو اسم الزبون">
+                <button id="search-by-code-btn"><i class="fas fa-search"></i> بحث</button>
+                <button id="qr-scan-btn"><i class="fas fa-qrcode"></i> فحص QR</button>
+            </div>
+            <div id="search-suggestions" class="search-suggestions"></div>
+            <div id="qr-reader" style="width: 100%; display: none;"></div>
+            <button id="stop-scan-btn" style="display: none;">إيقاف الفحص</button>
+            <div id="device-status-details" class="device-status-details"></div>
+        </section>
+
+        <!-- Admin Panel Section -->
+        <section id="admin-panel" class="tab-content">
+            <h2>لوحة الإدارة</h2>
+            <nav class="admin-tabs">
+                <button class="tab-btn active" data-tab="dashboard"><i class="fas fa-chart-line"></i> لوحة القيادة</button>
+                <button class="tab-btn" data-tab="device-intake"><i class="fas fa-plus-circle"></i> استلام جهاز</button>
+                <button class="tab-btn" data-tab="customers"><i class="fas fa-users"></i> جدول الزبائن</button>
+                <button class="tab-btn" data-tab="financial"><i class="fas fa-dollar-sign"></i> القسم المالي</button>
+                <button class="tab-btn" data-tab="shop-management"><i class="fas fa-store"></i> إدارة التسوق</button>
+                <button class="tab-btn" data-tab="content"><i class="fas fa-edit"></i> إدارة المحتوى</button>
+                <button class="tab-btn" data-tab="settings"><i class="fas fa-cog"></i> الإعدادات</button>
+                <button class="tab-btn" data-tab="users"><i class="fas fa-user-shield"></i> إدارة المستخدمين</button>
+            </nav>
+
+            <div class="admin-tab-content active" id="dashboard">
+                <h3>لوحة القيادة</h3>
+                <div id="dashboard-stats" class="dashboard-stats"></div>
+            </div>
+
+            <div class="admin-tab-content" id="device-intake">
+                <h3>استلام جهاز جديد</h3>
+                <form id="device-form">
+                    <div class="form-group">
+                        <label for="customer-name">اسم الزبون:</label>
+                        <input type="text" id="customer-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="device-type">نوع الجهاز:</label>
+                        <input type="text" id="device-type" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="device-issue">العطل:</label>
+                        <select id="device-issue" required>
+                            <option value="">اختر العطل</option>
+                            <option value="شاشة مكسورة">شاشة مكسورة</option>
+                            <option value="بطارية لا تشحن">بطارية لا تشحن</option>
+                            <option value="مشكلة في الصوت">مشكلة في الصوت</option>
+                            <option value="مشكلة في الكاميرا">مشكلة في الكاميرا</option>
+                            <option value="لا يعمل">لا يعمل</option>
+                            <option value="مشكلة في الشحن">مشكلة في الشحن</option>
+                            <option value="مشكلة في الشبكة">مشكلة في الشبكة</option>
+                            <option value="مشكلة في اللمس">مشكلة في اللمس</option>
+                            <option value="مشكلة في الواي فاي">مشكلة في الواي فاي</option>
+                            <option value="مشكلة في البلوتوث">مشكلة في البلوتوث</option>
+                            <option value="مشكلة في زر الطاقة">مشكلة في زر الطاقة</option>
+                            <option value="مشكلة في زر الصوت">مشكلة في زر الصوت</option>
+                            <option value="مشكلة في الميكروفون">مشكلة في الميكروفون</option>
+                            <option value="مشكلة في السماعة">مشكلة في السماعة</option>
+                            <option value="مشكلة في السوفت وير">مشكلة في السوفت وير</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="total-amount">المبلغ الإجمالي:</label>
+                        <input type="number" id="total-amount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="paid-amount">المبلغ المدفوع:</label>
+                        <input type="number" id="paid-amount" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="remaining-amount">المبلغ المتبقي:</label>
+                        <input type="number" id="remaining-amount" step="0.01" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="currency">العملة:</label>
+                        <select id="currency">
+                            <option value="USD">دولار أمريكي ($)</option>
+                            <option value="SYP">ليرة سورية (ل.س)</option>
+                            <option value="TRY">ليرة تركية (₺)</option>
+                        </select>
+                    </div>
+                    <button type="submit"><i class="fas fa-save"></i> حفظ الجهاز</button>
+                </form>
+                <div id="device-receipt" class="device-receipt"></div>
+            </div>
+
+            <div class="admin-tab-content" id="customers">
+                <h3>جدول الزبائن</h3>
+                <div class="table-container">
+                    <table id="customers-table">
+                        <thead>
+                            <tr>
+                                <th>كود الجهاز</th>
+                                <th>اسم الزبون</th>
+                                <th>نوع الجهاز</th>
+                                <th>العطل</th>
+                                <th>الحالة</th>
+                                <th>تاريخ الاستلام</th>
+                                <th>تفاصيل الإصلاح</th>
+                                <th>ملاحظات</th>
+                                <th>المبلغ الإجمالي</th>
+                                <th>المبلغ المدفوع</th>
+                                <th>المبلغ المتبقي</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Customer data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-tab-content" id="financial">
+                <h3>القسم المالي</h3>
+                <div class="financial-summary">
+                    <div class="summary-card">
+                        <h4>إجمالي الإيرادات</h4>
+                        <p id="total-income">0.00 $</p>
+                    </div>
+                    <div class="summary-card">
+                        <h4>إجمالي المصروفات</h4>
+                        <p id="total-expenses">0.00 $</p>
+                    </div>
+                    <div class="summary-card">
+                        <h4>صافي الربح</h4>
+                        <p id="net-profit">0.00 $</p>
+                    </div>
+                </div>
+
+                <h4>الصندوق المالي</h4>
+                <div class="cash-box-info">
+                    <p>الرصيد الحالي: <span id="cash-box-balance">0.00 $</span></p>
+                    <button onclick="showAddTransactionModal(\'income\')"><i class="fas fa-plus"></i> إضافة إيداع</button>
+                    <button onclick="showAddTransactionModal(\'expense\')"><i class="fas fa-minus"></i> إضافة سحب</button>
+                </div>
+
+                <h4>دفتر الأستاذ</h4>
+                <div class="table-container">
+                    <table id="general-ledger-table">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الوصف</th>
+                                <th>دائن</th>
+                                <th>مدين</th>
+                                <th>العملة</th>
+                                <th>الزبون</th>
+                                <th>كود الجهاز</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Ledger data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <h4>كشف حساب الزبون</h4>
+                <div class="customer-account-search">
+                    <input type="text" id="customer-account-name" placeholder="اسم الزبون">
+                    <button onclick="viewCustomerAccount()"><i class="fas fa-eye"></i> عرض الكشف</button>
+                </div>
+                <div id="customer-account-details" class="customer-account-details"></div>
+            </div>
+
+            <div class="admin-tab-content" id="shop-management">
+                <h3>إدارة المنتجات</h3>
+                <form id="product-form">
+                    <div class="form-group">
+                        <label for="product-name">اسم المنتج:</label>
+                        <input type="text" id="product-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-price">السعر:</label>
+                        <input type="number" id="product-price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-currency">العملة:</label>
+                        <select id="product-currency">
+                            <option value="USD">دولار أمريكي ($)</option>
+                            <option value="SYP">ليرة سورية (ل.س)</option>
+                            <option value="TRY">ليرة تركية (₺)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-category">الفئة:</label>
+                        <input type="text" id="product-category" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-condition">الحالة:</label>
+                        <select id="product-condition">
+                            <option value="جديد">جديد</option>
+                            <option value="مستعمل">مستعمل</option>
+                            <option value="مجدد">مجدد</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-image">رابط الصورة:</label>
+                        <input type="url" id="product-image" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-specs">المواصفات:</label>
+                        <textarea id="product-specs" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-stock">الكمية المتوفرة:</label>
+                        <input type="number" id="product-stock" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-discount">الخصم (%):</label>
+                        <input type="number" id="product-discount" min="0" max="100" value="0">
+                    </div>
+                    <button type="submit"><i class="fas fa-plus"></i> إضافة منتج</button>
+                </form>
+                <div class="table-container">
+                    <table id="products-table">
+                        <thead>
+                            <tr>
+                                <th>الاسم</th>
+                                <th>السعر</th>
+                                <th>الكمية</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Product data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="admin-tab-content" id="content">
+                <h3>إدارة المحتوى</h3>
+                <h4>تحديث الشريط المتحرك</h4>
+                <form id="ticker-form">
+                    <div class="form-group">
+                        <label for="ticker-input">نص الشريط المتحرك:</label>
+                        <input type="text" id="ticker-input" required>
+                    </div>
+                    <button type="submit"><i class="fas fa-sync"></i> تحديث</button>
+                </form>
+
+                <h4>إدارة الأخبار</h4>
+                <form id="news-upload-form">
+                    <div class="form-group">
+                        <label for="news-title">عنوان الخبر:</label>
+                        <input type="text" id="news-title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="news-content">محتوى الخبر:</label>
+                        <textarea id="news-content" rows="5" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="news-image-url">رابط صورة الخبر:</label>
+                        <input type="url" id="news-image-url" placeholder="https://example.com/news.jpg">
+                    </div>
+                    <button type="submit"><i class="fas fa-upload"></i> نشر الخبر</button>
+                </form>
+
+                <h4>إدارة التطبيقات</h4>
+                <form id="app-upload-form">
+                    <div class="form-group">
+                        <label for="app-name">اسم التطبيق:</label>
+                        <input type="text" id="app-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="app-category">الفئة:</label>
+                        <select id="app-category">
+                            <option value="security">أمان</option>
+                            <option value="tools">أدوات</option>
+                            <option value="entertainment">ترفيه</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="app-description">الوصف:</label>
+                        <textarea id="app-description" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="app-download-url">رابط التحميل:</label>
+                        <input type="url" id="app-download-url" placeholder="https://example.com/app.apk">
+                    </div>
+                    <button type="submit"><i class="fas fa-upload"></i> رفع التطبيق</button>
+                </form>
+            </div>
+
+            <div class="admin-tab-content" id="settings">
+                <h3>الإعدادات</h3>
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label for="center-name">اسم المركز:</label>
+                        <input type="text" id="center-name" value="مركز أيمن لصيانة الموبايل">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-email">البريد الإلكتروني:</label>
+                        <input type="email" id="contact-email" value="info@aymanmobile.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="contact-phone">رقم الهاتف:</label>
+                        <input type="tel" id="contact-phone" value="+963 999 123 456">
+                    </div>
+                    <div class="form-group">
+                        <label for="social-facebook">رابط فيسبوك:</label>
+                        <input type="url" id="social-facebook" value="#">
+                    </div>
+                    <div class="form-group">
+                        <label for="social-twitter">رابط تويتر:</label>
+                        <input type="url" id="social-twitter" value="#">
+                    </div>
+                    <div class="form-group">
+                        <label for="social-instagram">رابط انستغرام:</label>
+                        <input type="url" id="social-instagram" value="#">
+                    </div>
+                    <div class="form-group">
+                        <label for="social-whatsapp">رابط واتساب:</label>
+                        <input type="url" id="social-whatsapp" value="#">
+                    </div>
+                    <button type="submit"><i class="fas fa-save"></i> حفظ الإعدادات</button>
+                </form>
+            </div>
+
+            <div class="admin-tab-content" id="users">
+                <h3>إدارة المستخدمين</h3>
+                <form id="add-user-form">
+                    <h4>إضافة مستخدم جديد</h4>
+                    <div class="form-group">
+                        <label for="new-username">اسم المستخدم:</label>
+                        <input type="text" id="new-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-password">كلمة المرور:</label>
+                        <input type="password" id="new-password" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="new-role">الدور:</label>
+                        <select id="new-role">
+                            <option value="employee">موظف</option>
+                            <option value="editor">محرر</option>
+                            <option value="admin">مدير</option>
+                        </select>
+                    </div>
+                    <button type="submit"><i class="fas fa-user-plus"></i> إضافة مستخدم</button>
+                </form>
+
+                <h4>قائمة المستخدمين</h4>
+                <div class="table-container">
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>اسم المستخدم</th>
+                                <th>الدور</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- User data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Apps Section -->
+        <section id="apps" class="tab-content">
+            <h2>تطبيقات مفيدة</h2>
+            <div class="category-tabs">
+                <button class="category-tab active" data-category="security"><i class="fas fa-shield-alt"></i> أمان</button>
+                <button class="category-tab" data-category="tools"><i class="fas fa-tools"></i> أدوات</button>
+                <button class="category-tab" data-category="entertainment"><i class="fas fa-gamepad"></i> ترفيه</button>
+            </div>
+            <div id="apps-grid" class="apps-grid"></div>
+            <div id="apps-upload-section" class="upload-section"></div>
+        </section>
+
+        <!-- Shop Section -->
+        <section id="shop" class="tab-content">
+            <h2>متجرنا</h2>
+            <div id="products-grid" class="products-grid"></div>
+            <div class="cart-modal" id="cart-modal">
+                <div class="cart-content">
+                    <span class="close-cart">&times;</span>
+                    <h3>سلة التسوق</h3>
+                    <div id="cart-items-list"></div>
+                    <div class="cart-summary">
+                        <p>الإجمالي: <span id="cart-total">0.00 $</span></p>
+                        <button id="checkout-btn">إتمام الشراء</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Delivery Service Section -->
+        <section id="delivery" class="tab-content">
+            <h2>نصلك أينما كنت</h2>
+            <div class="delivery-intro">
+                <p>خدمة التوصيل المنزلي - نستلم جهازك من منزلك ونعيده إليك بعد الإصلاح</p>
+            </div>
+            
+            <div class="delivery-form-container">
+                <form id="delivery-request-form">
+                    <h3>طلب خدمة التوصيل</h3>
+                    
+                    <div class="form-group">
+                        <label for="delivery-customer-name">الاسم الكامل:</label>
+                        <input type="text" id="delivery-customer-name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delivery-phone">رقم التواصل:</label>
+                        <input type="tel" id="delivery-phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delivery-device-name">اسم الهاتف:</label>
+                        <input type="text" id="delivery-device-name" placeholder="مثال: iPhone 12 Pro" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delivery-issue">وصف العطل:</label>
+                        <textarea id="delivery-issue" rows="3" placeholder="اشرح المشكلة بالتفصيل..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delivery-address">العنوان بالتفصيل:</label>
+                        <textarea id="delivery-address" rows="3" placeholder="المحافظة، المدينة، الحي، اسم الشارع، رقم البناء..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delivery-location">الموقع الجغرافي (اختياري):</label>
+                        <div class="location-input-group">
+                            <input type="text" id="delivery-location" placeholder="انقر للحصول على الموقع الحالي" readonly>
+                            <button type="button" id="get-location-btn" class="location-btn">
+                                <i class="fas fa-map-marker-alt"></i> تحديد الموقع
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delivery-preferred-time">الوقت المفضل للاستلام:</label>
+                        <select id="delivery-preferred-time">
+                            <option value="">اختر الوقت المناسب</option>
+                            <option value="morning">صباحاً (9:00 - 12:00)</option>
+                            <option value="afternoon">بعد الظهر (12:00 - 17:00)</option>
+                            <option value="evening">مساءً (17:00 - 20:00)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="delivery-notes">ملاحظات إضافية:</label>
+                        <textarea id="delivery-notes" rows="2" placeholder="أي ملاحظات أو تعليمات خاصة..."></textarea>
+                    </div>
+                    
+                    <button type="submit" class="delivery-submit-btn">
+                        <i class="fas fa-paper-plane"></i> إرسال طلب التوصيل
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Admin Notifications Panel -->
+            <div id="delivery-admin-panel" class="delivery-admin-panel" style="display: none;">
+                <h3>طلبات التوصيل</h3>
+                <div id="delivery-requests-list" class="delivery-requests-list"></div>
+            </div>
+        </section>
+
+        <!-- News Section -->
+        <section id="news" class="tab-content">
+            <h2>آخر الأخبار</h2>
+            <div id="news-feed" class="news-feed"></div>
+            <div id="news-upload-section" class="upload-section"></div>
+        </section>
+
+        <!-- Services Section -->
+        <section id="services" class="tab-content">
+            <h2>خدماتنا</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>صيانة الهواتف</h3>
+                    <p>إصلاح جميع أعطال الهواتف الذكية بجميع أنواعها.</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-tablet-alt"></i>
+                    <h3>صيانة الأجهزة اللوحية</h3>
+                    <p>إصلاح شامل للأجهزة اللوحية واستبدال القطع التالفة.</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-tools"></i>
+                    <h3>استبدال قطع الغيار</h3>
+                    <p>توفير قطع غيار أصلية ومعتمدة لجميع الأجهزة.</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-battery-full"></i>
+                    <h3>تغيير البطاريات</h3>
+                    <p>استبدال البطاريات التالفة ببطاريات جديدة عالية الجودة.</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-wrench"></i>
+                    <h3>إصلاح الشاشات</h3>
+                    <p>إصلاح وتغيير الشاشات المكسورة أو التالفة.</p>
+                </div>
+                <div class="service-card">
+                    <i class="fas fa-wifi"></i>
+                    <h3>إصلاح مشاكل الشبكة</h3>
+                    <p>حل مشاكل الاتصال والشبكة في الهواتف والأجهزة اللوحية.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Us Section -->
+        <section id="about" class="tab-content">
+            <h2>من نحن</h2>
+            <div class="about-content">
+                <p>مركز أيمن لصيانة الموبايل هو وجهتك الأولى لجميع احتياجات صيانة الهواتف الذكية والأجهزة اللوحية. نقدم خدمات إصلاح عالية الجودة وسريعة، مع فريق من الفنيين المتخصصين وذوي الخبرة. نستخدم أحدث التقنيات وأفضل قطع الغيار لضمان عودة جهازك للعمل بكفاءة تامة.</p>
+                <p>نحن نؤمن بتقديم خدمة عملاء ممتازة، ونسعى دائمًا لتجاوز توقعاتكم. رضاكم هو أولويتنا القصوى.</p>
+                <div class="contact-info">
+                    <p><i class="fas fa-map-marker-alt"></i> العنوان: [عنوان مركزك هنا]</p>
+                    <p><i class="fas fa-phone"></i> الهاتف: +963 999 123 456</p>
+                    <p><i class="fas fa-envelope"></i> البريد الإلكتروني: info@aymanmobile.com</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Login Modal -->
+        <div id="login-modal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>تسجيل الدخول</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="username">اسم المستخدم:</label>
+                        <input type="text" id="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">كلمة المرور:</label>
+                        <input type="password" id="password" required>
+                    </div>
+                    <button type="submit">دخول</button>
+                    <p id="login-error" class="error-message" style="display: none;"></p>
+                </form>
+            </div>
+        </div>
+
+        <!-- Add Transaction Modal -->
+        <div id="add-transaction-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById(\'add-transaction-modal\').style.display=\'none\'">&times;</span>
+                <h2>إضافة معاملة مالية</h2>
+                <form id="transaction-form">
+                    <div class="form-group">
+                        <label for="transaction-type">نوع المعاملة:</label>
+                        <select id="transaction-type" disabled>
+                            <option value="income">إيداع</option>
+                            <option value="expense">سحب</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-amount">المبلغ:</label>
+                        <input type="number" id="transaction-amount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-currency">العملة:</label>
+                        <select id="transaction-currency">
+                            <option value="USD">دولار أمريكي ($)</option>
+                            <option value="SYP">ليرة سورية (ل.س)</option>
+                            <option value="TRY">ليرة تركية (₺)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="transaction-description">الوصف:</label>
+                        <input type="text" id="transaction-description" required>
+                    </div>
+                    <button type="submit">حفظ المعاملة</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Edit Device Modal -->
+        <div id="edit-device-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById(\'edit-device-modal\').style.display=\'none\'">&times;</span>
+                <h2>تعديل بيانات الجهاز</h2>
+                <form id="edit-device-form">
+                    <input type="hidden" id="edit-device-code">
+                    <div class="form-group">
+                        <label for="edit-customer-name">اسم الزبون:</label>
+                        <input type="text" id="edit-customer-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-device-type">نوع الجهاز:</label>
+                        <input type="text" id="edit-device-type" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-device-issue">العطل:</label>
+                        <select id="edit-device-issue" required>
+                            <option value="شاشة مكسورة">شاشة مكسورة</option>
+                            <option value="بطارية لا تشحن">بطارية لا تشحن</option>
+                            <option value="مشكلة في الصوت">مشكلة في الصوت</option>
+                            <option value="مشكلة في الكاميرا">مشكلة في الكاميرا</option>
+                            <option value="لا يعمل">لا يعمل</option>
+                            <option value="مشكلة في الشحن">مشكلة في الشحن</option>
+                            <option value="مشكلة في الشبكة">مشكلة في الشبكة</option>
+                            <option value="مشكلة في اللمس">مشكلة في اللمس</option>
+                            <option value="مشكلة في الواي فاي">مشكلة في الواي فاي</option>
+                            <option value="مشكلة في البلوتوث">مشكلة في البلوتوث</option>
+                            <option value="مشكلة في زر الطاقة">مشكلة في زر الطاقة</option>
+                            <option value="مشكلة في زر الصوت">مشكلة في زر الصوت</option>
+                            <option value="مشكلة في الميكروفون">مشكلة في الميكروفون</option>
+                            <option value="مشكلة في السماعة">مشكلة في السماعة</option>
+                            <option value="مشكلة في السوفت وير">مشكلة في السوفت وير</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-total-amount">المبلغ الإجمالي:</label>
+                        <input type="number" id="edit-total-amount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-paid-amount">المبلغ المدفوع:</label>
+                        <input type="number" id="edit-paid-amount" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-remaining-amount">المبلغ المتبقي:</label>
+                        <input type="number" id="edit-remaining-amount" step="0.01" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-currency">العملة:</label>
+                        <select id="edit-currency">
+                            <option value="USD">دولار أمريكي ($)</option>
+                            <option value="SYP">ليرة سورية (ل.س)</option>
+                            <option value="TRY">ليرة تركية (₺)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-status">الحالة:</label>
+                        <select id="edit-status">
+                            <option value="received">تم الاستلام</option>
+                            <option value="in_progress">قيد الإصلاح</option>
+                            <option value="waiting_parts">في انتظار قطع الغيار</option>
+                            <option value="completed">تم الإصلاح</option>
+                            <option value="delivered">تم التسليم</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-repair-details">تفاصيل الإصلاح:</label>
+                        <textarea id="edit-repair-details" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-notes">ملاحظات:</label>
+                        <textarea id="edit-notes" rows="3"></textarea>
+                    </div>
+                    <button type="submit"><i class="fas fa-save"></i> حفظ التعديلات</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Receive Payment Modal -->
+        <div id="receive-payment-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById(\'receive-payment-modal\').style.display=\'none\'">&times;</span>
+                <h2>استلام دفعة</h2>
+                <form id="receive-payment-form">
+                    <input type="hidden" id="payment-device-code">
+                    <p>الجهاز: <span id="payment-device-info"></span></p>
+                    <p>المبلغ المتبقي: <span id="payment-remaining-info"></span></p>
+                    <div class="form-group">
+                        <label for="payment-amount">المبلغ المدفوع الآن:</label>
+                        <input type="number" id="payment-amount" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="payment-method">طريقة الدفع:</label>
+                        <select id="payment-method">
+                            <option value="cash">نقداً</option>
+                            <option value="card">بطاقة</option>
+                            <option value="transfer">تحويل بنكي</option>
+                        </select>
+                    </div>
+                    <button type="submit">تسجيل الدفعة</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Product Details Modal -->
+        <div id="product-details-modal" class="modal">
+            <div class="modal-content large-modal">
+                <span class="close" onclick="document.getElementById(\'product-details-modal\').style.display=\'none\'">&times;</span>
+                <div id="product-details-content"></div>
+            </div>
+        </div>
+
+        <!-- Inquiry Modal -->
+        <div id="inquiry-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="document.getElementById(\'inquiry-modal\').style.display=\'none\'">&times;</span>
+                <div id="inquiry-content"></div>
+            </div>
+        </div>
+
+        <!-- Cart Modal -->
+        <div id="cart-modal-display" class="modal">
+            <div class="modal-content large-modal">
+                <span class="close" onclick="document.getElementById(\'cart-modal-display\').style.display=\'none\'">&times;</span>
+                <h2>سلة التسوق</h2>
+                <div id="cart-items-list-display"></div>
+                <div class="cart-summary">
+                    <p>الإجمالي: <span id="cart-total-display">0.00 $</span></p>
+                    <button id="checkout-btn-display">إتمام الشراء</button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="main-footer">
+        <div class="social-icons">
+            <a href="#" target="_blank" title="فيسبوك"><i class="fab fa-facebook"></i></a>
+            <a href="#" target="_blank" title="تويتر"><i class="fab fa-twitter"></i></a>
+            <a href="#" target="_blank" title="انستغرام"><i class="fab fa-instagram"></i></a>
+            <a href="#" target="_blank" title="واتساب"><i class="fab fa-whatsapp"></i></a>
+        </div>
+        <p>&copy; <span id="current-year"></span> مركز أيمن لصيانة الموبايل. جميع الحقوق محفوظة.</p>
+        <div class="datetime-info">
+            <span id="current-time"></span> | <span id="gregorian-date"></span> | <span id="hijri-date"></span> | <span id="current-clock"></span>
+        </div>
+    </footer>
+
+    <script src="main.js"></script>
+</body>
+</html>
+
+
